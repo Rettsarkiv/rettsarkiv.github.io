@@ -14,7 +14,7 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-            font-size: 14px;
+            font-size: 14px; /* Smaller font for mobile */
         }
         th {
             background-color: #f2f2f2;
@@ -31,21 +31,10 @@
             color: #1a73e8;
             text-decoration: underline;
             display: inline-block;
-            padding: 4px;
+            padding: 4px; /* Larger tap area */
         }
         .saksnummer:hover {
             color: #1557b0;
-        }
-        /* Wrap text in Domstol and Saken gjelder columns */
-        #caseTable tbody tr td:nth-child(3) { /* Domstol */
-            max-width: 400px;
-            white-space: normal;
-            word-break: break-word;
-        }
-        #caseTable tbody tr td:nth-child(4) { /* Saken gjelder */
-            max-width: 500px;
-            white-space: normal;
-            word-break: break-word;
         }
         /* Modal styles */
         .modal {
@@ -65,7 +54,7 @@
             padding: 16px;
             border: 1px solid #888;
             width: 90%;
-            max-width: 600px;
+            max-width: 600px; /* Reduced for mobile */
             border-radius: 8px;
             box-sizing: border-box;
         }
@@ -75,7 +64,7 @@
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            padding: 8px;
+            padding: 8px; /* Larger tap area */
         }
         .close:hover,
         .close:focus {
@@ -143,30 +132,21 @@
             color: #374151;
             margin-bottom: 12px;
         }
-        /* Wrap text in modal Saken gjelder */
-        #modalSakenGjelder {
-            max-width: 200%;
-            white-space: normal;
-            word-break: break-word;
-        }
         /* Mobile-specific styles */
         @media (max-width: 640px) {
             .container {
-                padding: 8px;
+                padding: 8px; /* Reduced padding */
             }
             h1 {
-                font-size: 1.75rem;
-            }
-            h2.subtitle {
-                font-size: 1.125rem;
+                font-size: 1.5rem; /* Smaller heading */
             }
             table {
                 display: block;
-                overflow-x: auto;
+                overflow-x: auto; /* Horizontal scroll for tables */
                 white-space: nowrap;
             }
             th, td {
-                font-size: 16px;
+                font-size: 12px; /* Even smaller font */
                 padding: 6px;
             }
             .modal-content {
@@ -175,16 +155,16 @@
                 padding: 12px;
             }
             .modal h1 {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
             }
             .modal h2 {
-                font-size: 1.125rem;
+                font-size: 1rem;
             }
             .saksnummer {
-                padding: 6px;
+                padding: 6px; /* Larger tap area for mobile */
             }
             .select-container select, .search-container input {
-                font-size: 0.875rem;
+                font-size: 0.75rem;
                 padding: 6px;
             }
         }
@@ -192,8 +172,7 @@
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
-        <h1 id="pageTitle" class="text-3xl font-bold mb-2 cursor-pointer">Rettsarkiv</h1>
-        <h2 class="subtitle text-lg text-gray-600 mb-4">Bevarer fortidens rettssaker for fremtidens innsikt</h2>
+        <h1 class="text-2xl font-bold mb-4">Rettsarkiv</h1>
         <div class="mb-4">
             <label for="datePicker" class="block text-sm font-medium text-gray-700">Dato:</label>
             <input type="date" id="datePicker" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
@@ -294,7 +273,6 @@
         document.getElementById('sortStartdato').addEventListener('click', () => sortTable('startdato'));
         document.getElementById('sortDomstol').addEventListener('click', () => sortTable('domstol'));
         document.getElementById('searchSakenGjelder').addEventListener('input', handleSearch);
-        document.getElementById('pageTitle').addEventListener('click', resetFilters);
 
         const modal = document.getElementById('caseModal');
         const closeBtn = document.getElementsByClassName('close')[0];
@@ -307,16 +285,6 @@
             if (event.target == modal) {
                 modal.style.display = 'none';
             }
-        }
-
-        function resetFilters() {
-            document.getElementById('datePicker').value = '';
-            document.getElementById('courtSelect').value = '';
-            document.getElementById('searchSakenGjelder').value = '';
-            selectedCourt = '';
-            searchTerm = '';
-            currentCases = [];
-            displayCases(currentCases);
         }
 
         async function handleDateSelect(event) {
