@@ -43,7 +43,7 @@
             word-break: break-word;
         }
         #caseTable tbody tr td:nth-child(4) { /* Saken gjelder */
-            max-width: 250px;
+            max-width: 200px;
             white-space: normal;
             word-break: break-word;
         }
@@ -150,7 +150,7 @@
             word-break: break-word;
         }
         /* Mobile-specific styles */
-        @media (max-width: 800px) {
+        @media (max-width: 640px) {
             .container {
                 padding: 8px;
             }
@@ -163,39 +163,11 @@
             table {
                 display: block;
                 overflow-x: auto;
-                white-space: normal;
+                white-space: nowrap;
             }
             th, td {
                 font-size: 16px;
                 padding: 6px;
-            }
-            #caseTable thead tr th:nth-child(1) { /* Startdato */
-                min-width: 100px;
-            }
-            #caseTable thead tr th:nth-child(2) { /* Saksnummer */
-                min-width: 120px;
-            }
-            #caseTable thead tr th:nth-child(3) { /* Domstol */
-                min-width: 250px;
-            }
-            #caseTable thead tr th:nth-child(4) { /* Saken gjelder */
-                min-width: 350px;
-            }
-            #caseTable tbody tr td:nth-child(1) { /* Startdato */
-                min-width: 100px;
-            }
-            #caseTable tbody tr td:nth-child(2) { /* Saksnummer */
-                min-width: 120px;
-            }
-            #caseTable tbody tr td:nth-child(3) { /* Domstol */
-                min-width: 250px;
-                white-space: normal;
-                word-break: break-word;
-            }
-            #caseTable tbody tr td:nth-child(4) { /* Saken gjelder */
-                min-width: 350px;
-                white-space: normal;
-                word-break: break-word;
             }
             .modal-content {
                 margin: 15% auto;
@@ -234,7 +206,7 @@
         </div>
         <div class="search-container">
             <label for="searchSakenGjelder">Saken gjelder:</label>
-        <input type="text" id="searchSakenGjelder" placeholder="Søk..." class="mt-1 block w-full">
+            <input type="text" id="searchSakenGjelder" placeholder="Søk..." class="mt-1 block w-full">
         </div>
         <div id="hitCount" class="hit-count">Viser 0 saker</div>
         <table id="caseTable" class="min-w-full bg-white">
@@ -417,7 +389,7 @@
             if (sortColumn === column) {
                 sortAscending = !sortAscending;
             } else {
-                sortColumn = columnKorea
+                sortColumn = column;
                 sortAscending = column === 'startdato' ? false : true;
             }
             displayCases(currentCases);
@@ -446,7 +418,7 @@
                     const domstolB = b.domstol || '';
                     return sortAscending
                         ? domstolA.localeCompare(domstolB)
-                        : domstolB.localeCompare(domstolB);
+                        : domstolB.localeCompare(domstolA);
                 }
                 return 0;
             });
@@ -537,5 +509,5 @@
             modal.style.display = 'block';
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'937ee0057bc3bfe5',t:'MTc0NTkzMDUwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9381cabf0f6731b6',t:'MTc0NTk2MTA4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
