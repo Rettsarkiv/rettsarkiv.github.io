@@ -164,19 +164,36 @@
                 display: block;
                 overflow-x: auto;
                 white-space: normal;
-                min-width: 600px; /* Smaller table width for mobile */
             }
             th, td {
                 font-size: 16px;
                 padding: 6px;
             }
+            #caseTable thead tr th:nth-child(1) { /* Startdato */
+                min-width: 100px;
+            }
+            #caseTable thead tr th:nth-child(2) { /* Saksnummer */
+                min-width: 120px;
+            }
+            #caseTable thead tr th:nth-child(3) { /* Domstol */
+                min-width: 250px;
+            }
+            #caseTable thead tr th:nth-child(4) { /* Saken gjelder */
+                min-width: 350px;
+            }
+            #caseTable tbody tr td:nth-child(1) { /* Startdato */
+                min-width: 100px;
+            }
+            #caseTable tbody tr td:nth-child(2) { /* Saksnummer */
+                min-width: 120px;
+            }
             #caseTable tbody tr td:nth-child(3) { /* Domstol */
-                width: 30%;
+                min-width: 250px;
                 white-space: normal;
                 word-break: break-word;
             }
             #caseTable tbody tr td:nth-child(4) { /* Saken gjelder */
-                width: 40%;
+                min-width: 350px;
                 white-space: normal;
                 word-break: break-word;
             }
@@ -217,7 +234,7 @@
         </div>
         <div class="search-container">
             <label for="searchSakenGjelder">Saken gjelder:</label>
-            <input type="text" id="searchSakenGjelder" placeholder="Søk..." class="mt-1 block w-full">
+        <input type="text" id="searchSakenGjelder" placeholder="Søk..." class="mt-1 block w-full">
         </div>
         <div id="hitCount" class="hit-count">Viser 0 saker</div>
         <table id="caseTable" class="min-w-full bg-white">
@@ -400,7 +417,7 @@
             if (sortColumn === column) {
                 sortAscending = !sortAscending;
             } else {
-                sortColumn = column;
+                sortColumn = columnKorea
                 sortAscending = column === 'startdato' ? false : true;
             }
             displayCases(currentCases);
@@ -429,7 +446,7 @@
                     const domstolB = b.domstol || '';
                     return sortAscending
                         ? domstolA.localeCompare(domstolB)
-                        : domstolB.localeCompare(domstolA);
+                        : domstolB.localeCompare(domstolB);
                 }
                 return 0;
             });
