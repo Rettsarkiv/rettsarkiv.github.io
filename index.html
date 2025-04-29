@@ -163,19 +163,20 @@
             table {
                 display: block;
                 overflow-x: auto;
-                white-space: nowrap;
+                white-space: normal; /* Allow text wrapping */
             }
             th, td {
                 font-size: 16px;
                 padding: 6px;
+                min-width: 100px; /* Ensure minimum width for readability */
             }
             #caseTable tbody tr td:nth-child(3) { /* Domstol */
-                max-width: 600px;
+                max-width: 650px;
                 white-space: normal;
                 word-break: break-word;
             }
             #caseTable tbody tr td:nth-child(4) { /* Saken gjelder */
-                max-width: 700px;
+                max-width: 750px;
                 white-space: normal;
                 word-break: break-word;
             }
