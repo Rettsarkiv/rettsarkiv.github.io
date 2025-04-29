@@ -149,6 +149,12 @@
                 font-size: 12px; /* Even smaller font */
                 padding: 6px;
             }
+            /* Limit width for Domstol (3rd column) and Saken gjelder (4th column) */
+            td:nth-child(3), td:nth-child(4) {
+                max-width: 150px;
+                overflow-wrap: break-word;
+                word-break: break-all;
+            }
             .modal-content {
                 margin: 15% auto;
                 width: 95%;
@@ -386,7 +392,7 @@
                     const domstolB = b.domstol || '';
                     return sortAscending
                         ? domstolA.localeCompare(domstolB)
-                        : domstolB.localeCompare(domstolA);
+                        : domstolB.localeCompare(domstolB);
                 }
                 return 0;
             });
@@ -477,5 +483,5 @@
             modal.style.display = 'block';
         }
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9381fc5ae9f9b04f',t:'MTc0NTk2MzExOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
