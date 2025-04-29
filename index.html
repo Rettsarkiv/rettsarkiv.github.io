@@ -14,7 +14,7 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-            font-size: 14px; /* Smaller font for mobile */
+            font-size: 14px;
         }
         th {
             background-color: #f2f2f2;
@@ -31,10 +31,16 @@
             color: #1a73e8;
             text-decoration: underline;
             display: inline-block;
-            padding: 4px; /* Larger tap area */
+            padding: 4px;
         }
         .saksnummer:hover {
             color: #1557b0;
+        }
+        /* Wrap text in Saken gjelder column */
+        #caseTable tbody tr td:nth-child(4) {
+            max-width: 200px;
+            white-space: normal;
+            word-wrap: break-word;
         }
         /* Modal styles */
         .modal {
@@ -54,17 +60,17 @@
             padding: 16px;
             border: 1px solid #888;
             width: 90%;
-            max-width: 600px; /* Reduced for mobile */
+            max-width: 600px;
             border-radius: 8px;
             box-sizing: border-box;
         }
         .close {
             color: #aaa;
-            float: right;
+            fight: right;
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            padding: 8px; /* Larger tap area */
+            padding: 8px;
         }
         .close:hover,
         .close:focus {
@@ -132,21 +138,27 @@
             color: #374151;
             margin-bottom: 12px;
         }
+        /* Wrap text in modal Saken gjelder */
+        #modalSakenGjelder {
+            max-width: 100%;
+            white-space: normal;
+            word-wrap: break-word;
+        }
         /* Mobile-specific styles */
         @media (max-width: 640px) {
             .container {
-                padding: 8px; /* Reduced padding */
+                padding: 8px;
             }
             h1 {
-                font-size: 1.5rem; /* Smaller heading */
+                font-size: 1.5rem;
             }
             table {
                 display: block;
-                overflow-x: auto; /* Horizontal scroll for tables */
+                overflow-x: auto;
                 white-space: nowrap;
             }
             th, td {
-                font-size: 12px; /* Even smaller font */
+                font-size: 16px; /* Increased for mobile */
                 padding: 6px;
             }
             .modal-content {
@@ -155,16 +167,16 @@
                 padding: 12px;
             }
             .modal h1 {
-                font-size: 1.25rem;
+                font-size: 1.5rem; /* Increased for mobile */
             }
             .modal h2 {
-                font-size: 1rem;
+                font-size: 1.125rem; /* Increased for mobile */
             }
             .saksnummer {
-                padding: 6px; /* Larger tap area for mobile */
+                padding: 6px;
             }
             .select-container select, .search-container input {
-                font-size: 0.75rem;
+                font-size: 0.875rem; /* Increased for mobile */
                 padding: 6px;
             }
         }
