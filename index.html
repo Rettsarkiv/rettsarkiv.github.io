@@ -36,12 +36,16 @@
         .saksnummer:hover {
             color: #1557b0;
         }
-        /* Wrap text in Saken gjelder and Domstol columns */
-        #caseTable tbody tr td:nth-child(3), /* Domstol */
-        #caseTable tbody tr td:nth-child(4) /* Saken gjelder */asc {
-            max-width: 200px;
+        /* Wrap text in Domstol and Saken gjelder columns */
+        #caseTable tbody tr td:nth-child(3) { /* Domstol */
+            max-width: 250px;
             white-space: normal;
-            word-wrap: break-word;
+            word-break: break-word;
+        }
+        #caseTable tbody tr td:nth-child(4) { /* Saken gjelder */
+            max-width: 250px;
+            white-space: normal;
+            word-break: break-word;
         }
         /* Modal styles */
         .modal {
@@ -143,7 +147,7 @@
         #modalSakenGjelder {
             max-width: 100%;
             white-space: normal;
-            word-wrap: break-word;
+            word-break: break-word;
         }
         /* Mobile-specific styles */
         @media (max-width: 640px) {
@@ -151,7 +155,7 @@
                 padding: 8px;
             }
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.75rem;
             }
             h2.subtitle {
                 font-size: 1.125rem;
@@ -188,7 +192,7 @@
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
-        <h1 id="pageTitle" class="text-2xl font-bold mb-2 cursor-pointer">Rettsarkiv</h1>
+        <h1 id="pageTitle" class="text-3xl font-bold mb-2 cursor-pointer">Rettsarkiv</h1>
         <h2 class="subtitle text-lg text-gray-600 mb-4">Bevarer fortidens rettssaker for fremtidens innsikt</h2>
         <div class="mb-4">
             <label for="datePicker" class="block text-sm font-medium text-gray-700">Dato:</label>
