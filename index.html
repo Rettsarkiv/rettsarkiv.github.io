@@ -1,0 +1,534 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rettsarkiv</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+        th:hover {
+            background-color: #e0e0e0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .saksnummer {
+            cursor: pointer;
+            color: #1a73e8;
+            text-decoration: underline;
+        }
+        .saksnummer:hover {
+            color: #1557b0;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        .info-box {
+            border: 1px solid #ddd;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .detail-list dt {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .detail-list dd {
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .detail-list .striped:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .no-parter {
+            display: flex;
+            align-items: center;
+        }
+        .no-parter-icon {
+            margin-right: 8px;
+        }
+        /* Dropdown styles */
+        .select-container {
+            margin-bottom: 16px;
+        }
+        .select-container label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .select-container select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 1rem;
+        }
+        .select-container select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+        }
+        /* Search input styles */
+        .search-container {
+            margin-bottom: 16px;
+        }
+        .search-container label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .search-container input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 1rem;
+        }
+        .search-container input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+        }
+        /* Sort icon styles */
+        th span.sort-icon {
+            margin-left: 4px;
+            font-size: 0.8em;
+        }
+        /* Hit count styles */
+        .hit-count {
+            font-size: 0.875rem;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Rettsarkiv</h1>
+        <div class="mb-4">
+            <label for="datePicker" class="block text-sm font-medium text-gray-700">Dato:</label>
+            <input type="date" id="datePicker" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+        </div>
+        <div class="select-container">
+            <label for="courtSelect">Domstol:</label>
+            <select id="courtSelect">
+                <option value="">Alle domstoler</option>
+            </select>
+        </div>
+        <div class="search-container">
+            <label for="searchSakenGjelder">Saken gjelder:</label>
+            <input type="text" id="searchSakenGjelder" placeholder="Søk..." class="mt-1 block w-full">
+        </div>
+        <div id="hitCount" class="hit-count">Viser 0 saker</div>
+        <table id="caseTable" class="min-w-full bg-white">
+            <thead>
+                <tr>
+                    <th id="sortStartdato">Startdato <span id="sortIconStartdato">↕</span></th>
+                    <th>Saksnummer</th>
+                    <th id="sortDomstol">Domstol <span id="sortIconDomstol">↕</span></th>
+                    <th>Saken gjelder</th>
+                </tr>
+            </thead>
+            <tbody id="caseTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div id="caseModal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h1 id="modalSaksnummer" class="text-2xl font-bold mb-2"></h1>
+            <h2 id="modalSakenGjelder" class="text-lg mb-4"></h2>
+            <div class="info-box">
+                <h2 class="text-xl font-semibold mb-2">Informasjon om saken</h2>
+                <dl id="modalDetails" class="detail-list"></dl>
+            </div>
+            <div class="mt-4">
+                <table class="min-w-full">
+                    <caption class="text-xl font-semibold mb-2">Dager avsatt i retten:</caption>
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-2 text-left">Dato</th>
+                            <th class="p-2 text-left">Tid</th>
+                            <th class="p-2 text-left">Rettsmøtetype</th>
+                            <th class="p-2 text-left">Sal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalHearings"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+    </script>
+    <script>
+        const overviewUrl = 'https://gist.githubusercontent.com/Rettsarkiv/3b60f2c82a56bf46d19116572cfb9e40/raw/oversikt.txt';
+        let currentCases = [];
+        let sortColumn = '';
+        let sortAscending = true;
+        let selectedCourt = '';
+        let searchTerm = '';
+
+        document.getElementById('datePicker').addEventListener('change', handleDateSelect);
+        document.getElementById('courtSelect').addEventListener('change', handleCourtSelect);
+        document.getElementById('sortStartdato').addEventListener('click', () => sortTable('startdato'));
+        document.getElementById('sortDomstol').addEventListener('click', () => sortTable('domstol'));
+        document.getElementById('searchSakenGjelder').addEventListener('input', handleSearch);
+
+        // Modal handling
+        const modal = document.getElementById('caseModal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        async function handleDateSelect(event) {
+            const selectedDate = event.target.value;
+            if (!selectedDate) return;
+
+            try {
+                // Fetch the overview file
+                const overviewResponse = await fetch(overviewUrl);
+                if (!overviewResponse.ok) throw new Error('Failed to fetch overview file');
+                const overviewText = await overviewResponse.text();
+
+                // Parse overview to find Gist ID for the selected date
+                const gistId = findGistId(overviewText, selectedDate);
+                if (!gistId) {
+                    alert('No Gist ID found for the selected date');
+                    return;
+                }
+
+                // Construct and fetch the JSON file
+                const jsonUrl = `https://gist.githubusercontent.com/Rettsarkiv/${gistId}/raw/${selectedDate}.json`;
+                const jsonResponse = await fetch(jsonUrl);
+                if (!jsonResponse.ok) throw new Error('Failed to fetch JSON file');
+                currentCases = await jsonResponse.json();
+
+                // Populate court dropdown
+                populateCourtDropdown(currentCases);
+
+                // Display the cases (apply filter and sort)
+                displayCases(currentCases);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function findGistId(overviewText, selectedDate) {
+            const lines = overviewText.split('\n');
+            for (const line of lines) {
+                const [date, id] = line.split(':');
+                if (date === selectedDate) {
+                    return id.trim();
+                }
+            }
+            return null;
+        }
+
+        function populateCourtDropdown(cases) {
+            const courtSelect = document.getElementById('courtSelect');
+            // Preserve "Alle domstoler" option
+            const currentValue = courtSelect.value;
+            courtSelect.innerHTML = '<option value="">Alle domstoler</option>';
+
+            // Get unique courts
+            const courts = [...new Set(cases.map(c => c.domstol).filter(d => d))].sort();
+            courts.forEach(court => {
+                const option = document.createElement('option');
+                option.value = court;
+                option.textContent = court;
+                courtSelect.appendChild(option);
+            });
+
+            // Restore selected value if it still exists
+            if (courts.includes(currentValue)) {
+                courtSelect.value = currentValue;
+            }
+        }
+
+        function handleCourtSelect(event) {
+            selectedCourt = event.target.value;
+            displayCases(currentCases);
+        }
+
+        function handleSearch(event) {
+            searchTerm = event.target.value.toLowerCase();
+            displayCases(currentCases);
+        }
+
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortAscending = !sortAscending;
+            } else {
+                sortColumn = column;
+                // Default to descending for startdato (newest first), ascending for domstol
+                sortAscending = column === 'startdato' ? false : true;
+            }
+            displayCases(currentCases);
+        }
+
+        function displayCases(data) {
+            // Filter by selected court and search term
+            let filteredCases = selectedCourt
+                ? data.filter(c => c.domstol === selectedCourt)
+                : [...data];
+            if (searchTerm) {
+                filteredCases = filteredCases.filter(c => 
+                    (c.sakenGjelder || '').toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Update hit count
+            const hitCount = document.getElementById('hitCount');
+            hitCount.textContent = `Viser ${filteredCases.length} ${filteredCases.length === 1 ? 'sak' : 'saker'}`;
+
+            // Sort cases
+            filteredCases.sort((a, b) => {
+                if (sortColumn === 'startdato') {
+                    const dateA = a.moeter && a.moeter.length > 0 ? new Date(Math.min(...a.moeter.map(m => new Date(m.start)))) : new Date(0);
+                    const dateB = b.moeter && b.moeter.length > 0 ? new Date(Math.min(...b.moeter.map(m => new Date(m.start)))) : new Date(0);
+                    return sortAscending ? dateA - dateB : dateB - dateA;
+                } else if (sortColumn === 'domstol') {
+                    const domstolA = a.domstol || '';
+                    const domstolB = b.domstol || '';
+                    return sortAscending
+                        ? domstolA.localeCompare(domstolB)
+                        : domstolB.localeCompare(domstolA);
+                }
+                return 0;
+            });
+
+            // Update sort icons
+            const startdatoIcon = document.getElementById('sortIconStartdato');
+            const domstolIcon = document.getElementById('sortIconDomstol');
+            startdatoIcon.textContent = sortColumn === 'startdato' ? (sortAscending ? '▲' : '▼') : '↕';
+            startdatoIcon.className = 'sort-icon';
+            domstolIcon.textContent = sortColumn === 'domstol' ? (sortAscending ? '▲' : '▼') : '↕';
+            domstolIcon.className = 'sort-icon';
+
+            const tableBody = document.getElementById('caseTableBody');
+            tableBody.innerHTML = ''; // Clear previous data
+
+            filteredCases.forEach(caseItem => {
+                // Get the earliest start date from moeter
+                const startDates = caseItem.moeter.map(m => new Date(m.start)).filter(d => !isNaN(d));
+                const earliestDate = startDates.length > 0 ? new Date(Math.min(...startDates)) : null;
+
+                // Format date to DD.MM.YYYY
+                const formattedDate = earliestDate 
+                    ? `${earliestDate.getDate().toString().padStart(2, '0')}.${(earliestDate.getMonth() + 1).toString().padStart(2, '0')}.${earliestDate.getFullYear()}`
+                    : '-';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td><span class="saksnummer" data-saksnummer="${caseItem.saksnummer}">${caseItem.saksnummer || '-'}</span></td>
+                    <td>${caseItem.domstol || '-'}</td>
+                    <td>${caseItem.sakenGjelder || '-'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Add click event listeners to saksnummer
+            document.querySelectorAll('.saksnummer').forEach(span => {
+                span.addEventListener('click', function() {
+                    const saksnummer = this.getAttribute('data-saksnummer');
+                    showCaseDetails(saksnummer);
+                });
+            });
+        }
+
+        function showCaseDetails(saksnummer) {
+            // Find the case in the currentCases array
+            const caseDetails = currentCases.find(c => c.saksnummer === saksnummer);
+            if (!caseDetails) {
+                alert('Case details not found');
+                return;
+            }
+
+            // Populate modal
+            document.getElementById('modalSaksnummer').textContent = caseDetails.saksnummer || '-';
+            document.getElementById('modalSakenGjelder').textContent = caseDetails.sakenGjelder || '-';
+
+            // Populate details
+            const detailsContainer = document.getElementById('modalDetails');
+            detailsContainer.innerHTML = '';
+            const details = {
+                'Domstol': caseDetails.domstol || '-',
+                'Sakstype': caseDetails.sakstype || '-',
+                'Dommer': caseDetails.rettensformann || '-',
+                'Parter': caseDetails.parter || 'Navn unntatt fra offentligheten',
+                'Advokater': caseDetails.advokat || '-',
+                'Bistandsadvokat': caseDetails.bistandsadvokat || '-'
+            };
+            let index = 0;
+            for (const [key, value] of Object.entries(details)) {
+                const div = document.createElement('div');
+                div.className = `striped p-2 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`;
+                div.innerHTML = `<dt>${key}</dt><dd>${value}</dd>`;
+                detailsContainer.appendChild(div);
+                index++;
+            }
+
+            // Populate hearings
+            const hearingsContainer = document.getElementById('modalHearings');
+            hearingsContainer.innerHTML = '';
+            (caseDetails.moeter || []).forEach(hearing => {
+                // Format start date to DD.MM.YYYY
+                const startDate = new Date(hearing.start);
+                const formattedDate = startDate && !isNaN(startDate) 
+                    ? `${startDate.getDate().toString().padStart(2, '0')}.${(startDate.getMonth() + 1).toString().padStart(2, '0')}.${startDate.getFullYear()}`
+                    : '-';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-2">${formattedDate}</td>
+                    <td class="p-2">${hearing.tid || '-'}</td>
+                    <td class="p-2">${hearing.rettsmotetype || '-'}</td>
+                    <td class="p-2">${hearing.sted || '-'}</td>
+                `;
+                hearingsContainer.appendChild(row);
+            });
+
+            // Show modal
+            modal.style.display = 'block';
+        }
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'937aacb76ef3ed86',t:'MTc0NTg4NjQ1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
