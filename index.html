@@ -36,8 +36,9 @@
         .saksnummer:hover {
             color: #1557b0;
         }
-        /* Wrap text in Saken gjelder column */
-        #caseTable tbody tr td:nth-child(4) {
+        /* Wrap text in Saken gjelder and Domstol columns */
+        #caseTable tbody tr td:nth-child(3), /* Domstol */
+        #caseTable tbody tr td:nth-child(4) /* Saken gjelder */asc {
             max-width: 200px;
             white-space: normal;
             word-wrap: break-word;
@@ -66,7 +67,7 @@
         }
         .close {
             color: #aaa;
-            fight: right;
+            float: right;
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
@@ -152,13 +153,16 @@
             h1 {
                 font-size: 1.5rem;
             }
+            h2.subtitle {
+                font-size: 1.125rem;
+            }
             table {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
             }
             th, td {
-                font-size: 16px; /* Increased for mobile */
+                font-size: 16px;
                 padding: 6px;
             }
             .modal-content {
@@ -167,16 +171,16 @@
                 padding: 12px;
             }
             .modal h1 {
-                font-size: 1.5rem; /* Increased for mobile */
+                font-size: 1.5rem;
             }
             .modal h2 {
-                font-size: 1.125rem; /* Increased for mobile */
+                font-size: 1.125rem;
             }
             .saksnummer {
                 padding: 6px;
             }
             .select-container select, .search-container input {
-                font-size: 0.875rem; /* Increased for mobile */
+                font-size: 0.875rem;
                 padding: 6px;
             }
         }
@@ -184,7 +188,8 @@
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Rettsarkiv</h1>
+        <h1 id="pageTitle" class="text-2xl font-bold mb-2 cursor-pointer">Rettsarkiv</h1>
+        <h2 class="subtitle text-lg text-gray-600 mb-4">Bevarer fortidens rettssaker for fremtidens innsikt</h2>
         <div class="mb-4">
             <label for="datePicker" class="block text-sm font-medium text-gray-700">Dato:</label>
             <input type="date" id="datePicker" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
@@ -285,6 +290,7 @@
         document.getElementById('sortStartdato').addEventListener('click', () => sortTable('startdato'));
         document.getElementById('sortDomstol').addEventListener('click', () => sortTable('domstol'));
         document.getElementById('searchSakenGjelder').addEventListener('input', handleSearch);
+        document.getElementById('pageTitle').addEventListener('click', resetFilters);
 
         const modal = document.getElementById('caseModal');
         const closeBtn = document.getElementsByClassName('close')[0];
@@ -297,6 +303,16 @@
             if (event.target == modal) {
                 modal.style.display = 'none';
             }
+        }
+
+        function resetFilters() {
+            document.getElementById('datePicker').value = '';
+            document.getElementById('courtSelect').value = '';
+            document.getElementById('searchSakenGjelder').value = '';
+            selectedCourt = '';
+            searchTerm = '';
+            currentCases = [];
+            displayCases(currentCases);
         }
 
         async function handleDateSelect(event) {
