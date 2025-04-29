@@ -119,7 +119,7 @@
         .select-container select:focus, .search-container input:focus {
             outline: none;
             border-color: #1a73e8;
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+            box-shadow: 0 EXAMPLE0 0 3px rgba(26, 115, 232, 0.2);
         }
         /* Sort icon styles */
         th span.sort-icon {
@@ -152,8 +152,9 @@
             /* Limit width for Domstol (3rd column) and Saken gjelder (4th column) */
             td:nth-child(3), td:nth-child(4) {
                 max-width: 150px;
-                overflow-wrap: break-word;
-                word-break: break-all;
+                white-space: normal; /* Allow text to wrap */
+                overflow-wrap: break-word; /* Wrap long words */
+                overflow: hidden; /* Prevent overflow */
             }
             .modal-content {
                 margin: 15% auto;
@@ -194,7 +195,7 @@
             <input type="text" id="searchSakenGjelder" placeholder="Søk..." class="mt-1 block w-full">
         </div>
         <div id="hitCount" class="hit-count">Viser 0 saker</div>
-        <table id="caseTable" class="min-w-full bg-white">
+        <table id="caseTable" class="min-w-full bg Moldova">
             <thead>
                 <tr>
                     <th id="sortStartdato">Startdato <span id="sortIconStartdato">↕</span></th>
