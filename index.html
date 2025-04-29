@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -53,6 +14,7 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            font-size: 14px; /* Smaller font for mobile */
         }
         th {
             background-color: #f2f2f2;
@@ -68,6 +30,8 @@
             cursor: pointer;
             color: #1a73e8;
             text-decoration: underline;
+            display: inline-block;
+            padding: 4px; /* Larger tap area */
         }
         .saksnummer:hover {
             color: #1557b0;
@@ -86,19 +50,21 @@
         }
         .modal-content {
             background-color: white;
-            margin: 5% auto;
-            padding: 20px;
+            margin: 10% auto;
+            padding: 16px;
             border: 1px solid #888;
-            width: 80%;
-            max-width: 800px;
+            width: 90%;
+            max-width: 600px; /* Reduced for mobile */
             border-radius: 8px;
+            box-sizing: border-box;
         }
         .close {
             color: #aaa;
             float: right;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
+            padding: 8px; /* Larger tap area */
         }
         .close:hover,
         .close:focus {
@@ -107,16 +73,17 @@
         }
         .info-box {
             border: 1px solid #ddd;
-            padding: 16px;
-            margin-top: 16px;
+            padding: 12px;
+            margin-top: 12px;
         }
         .detail-list dt {
             font-weight: bold;
-            display: inline-block;
-            width: 150px;
+            display: block;
+            width: 100%;
+            margin-bottom: 4px;
         }
         .detail-list dd {
-            display: inline-block;
+            display: block;
             margin-bottom: 8px;
         }
         .detail-list .striped:nth-child(even) {
@@ -129,50 +96,27 @@
         .no-parter-icon {
             margin-right: 8px;
         }
-        /* Dropdown styles */
-        .select-container {
-            margin-bottom: 16px;
+        /* Dropdown and Search styles */
+        .select-container, .search-container {
+            margin-bottom: 12px;
         }
-        .select-container label {
+        .select-container label, .search-container label {
             display: block;
             font-size: 0.875rem;
             font-weight: 500;
             color: #374151;
             margin-bottom: 4px;
         }
-        .select-container select {
+        .select-container select, .search-container input {
             width: 100%;
             padding: 8px;
             border: 1px solid #d1d5db;
             border-radius: 4px;
             background-color: white;
-            font-size: 1rem;
-        }
-        .select-container select:focus {
-            outline: none;
-            border-color: #1a73e8;
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
-        }
-        /* Search input styles */
-        .search-container {
-            margin-bottom: 16px;
-        }
-        .search-container label {
-            display: block;
             font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 4px;
+            box-sizing: border-box;
         }
-        .search-container input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            background-color: white;
-            font-size: 1rem;
-        }
-        .search-container input:focus {
+        .select-container select:focus, .search-container input:focus {
             outline: none;
             border-color: #1a73e8;
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
@@ -186,7 +130,43 @@
         .hit-count {
             font-size: 0.875rem;
             color: #374151;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+        }
+        /* Mobile-specific styles */
+        @media (max-width: 640px) {
+            .container {
+                padding: 8px; /* Reduced padding */
+            }
+            h1 {
+                font-size: 1.5rem; /* Smaller heading */
+            }
+            table {
+                display: block;
+                overflow-x: auto; /* Horizontal scroll for tables */
+                white-space: nowrap;
+            }
+            th, td {
+                font-size: 12px; /* Even smaller font */
+                padding: 6px;
+            }
+            .modal-content {
+                margin: 15% auto;
+                width: 95%;
+                padding: 12px;
+            }
+            .modal h1 {
+                font-size: 1.25rem;
+            }
+            .modal h2 {
+                font-size: 1rem;
+            }
+            .saksnummer {
+                padding: 6px; /* Larger tap area for mobile */
+            }
+            .select-container select, .search-container input {
+                font-size: 0.75rem;
+                padding: 6px;
+            }
         }
     </style>
 </head>
@@ -253,39 +233,31 @@
         var gk_xlsxFileLookup = {};
         var gk_fileData = {};
         function filledCell(cell) {
-          return cell !== '' && cell != null;
+            return cell !== '' && cell != null;
         }
         function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
                 }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
             }
-        }
-        return gk_fileData[filename] || "";
+            return gk_fileData[filename] || "";
         }
     </script>
     <script>
@@ -302,7 +274,6 @@
         document.getElementById('sortDomstol').addEventListener('click', () => sortTable('domstol'));
         document.getElementById('searchSakenGjelder').addEventListener('input', handleSearch);
 
-        // Modal handling
         const modal = document.getElementById('caseModal');
         const closeBtn = document.getElementsByClassName('close')[0];
 
@@ -321,28 +292,22 @@
             if (!selectedDate) return;
 
             try {
-                // Fetch the overview file
                 const overviewResponse = await fetch(overviewUrl);
                 if (!overviewResponse.ok) throw new Error('Failed to fetch overview file');
                 const overviewText = await overviewResponse.text();
 
-                // Parse overview to find Gist ID for the selected date
                 const gistId = findGistId(overviewText, selectedDate);
                 if (!gistId) {
                     alert('No Gist ID found for the selected date');
                     return;
                 }
 
-                // Construct and fetch the JSON file
                 const jsonUrl = `https://gist.githubusercontent.com/Rettsarkiv/${gistId}/raw/${selectedDate}.json`;
                 const jsonResponse = await fetch(jsonUrl);
                 if (!jsonResponse.ok) throw new Error('Failed to fetch JSON file');
                 currentCases = await jsonResponse.json();
 
-                // Populate court dropdown
                 populateCourtDropdown(currentCases);
-
-                // Display the cases (apply filter and sort)
                 displayCases(currentCases);
             } catch (error) {
                 alert('Error: ' + error.message);
@@ -362,11 +327,9 @@
 
         function populateCourtDropdown(cases) {
             const courtSelect = document.getElementById('courtSelect');
-            // Preserve "Alle domstoler" option
             const currentValue = courtSelect.value;
             courtSelect.innerHTML = '<option value="">Alle domstoler</option>';
 
-            // Get unique courts
             const courts = [...new Set(cases.map(c => c.domstol).filter(d => d))].sort();
             courts.forEach(court => {
                 const option = document.createElement('option');
@@ -375,7 +338,6 @@
                 courtSelect.appendChild(option);
             });
 
-            // Restore selected value if it still exists
             if (courts.includes(currentValue)) {
                 courtSelect.value = currentValue;
             }
@@ -396,14 +358,12 @@
                 sortAscending = !sortAscending;
             } else {
                 sortColumn = column;
-                // Default to descending for startdato (newest first), ascending for domstol
                 sortAscending = column === 'startdato' ? false : true;
             }
             displayCases(currentCases);
         }
 
         function displayCases(data) {
-            // Filter by selected court and search term
             let filteredCases = selectedCourt
                 ? data.filter(c => c.domstol === selectedCourt)
                 : [...data];
@@ -413,11 +373,9 @@
                 );
             }
 
-            // Update hit count
             const hitCount = document.getElementById('hitCount');
             hitCount.textContent = `Viser ${filteredCases.length} ${filteredCases.length === 1 ? 'sak' : 'saker'}`;
 
-            // Sort cases
             filteredCases.sort((a, b) => {
                 if (sortColumn === 'startdato') {
                     const dateA = a.moeter && a.moeter.length > 0 ? new Date(Math.min(...a.moeter.map(m => new Date(m.start)))) : new Date(0);
@@ -433,7 +391,6 @@
                 return 0;
             });
 
-            // Update sort icons
             const startdatoIcon = document.getElementById('sortIconStartdato');
             const domstolIcon = document.getElementById('sortIconDomstol');
             startdatoIcon.textContent = sortColumn === 'startdato' ? (sortAscending ? '▲' : '▼') : '↕';
@@ -442,14 +399,12 @@
             domstolIcon.className = 'sort-icon';
 
             const tableBody = document.getElementById('caseTableBody');
-            tableBody.innerHTML = ''; // Clear previous data
+            tableBody.innerHTML = '';
 
             filteredCases.forEach(caseItem => {
-                // Get the earliest start date from moeter
                 const startDates = caseItem.moeter.map(m => new Date(m.start)).filter(d => !isNaN(d));
                 const earliestDate = startDates.length > 0 ? new Date(Math.min(...startDates)) : null;
 
-                // Format date to DD.MM.YYYY
                 const formattedDate = earliestDate 
                     ? `${earliestDate.getDate().toString().padStart(2, '0')}.${(earliestDate.getMonth() + 1).toString().padStart(2, '0')}.${earliestDate.getFullYear()}`
                     : '-';
@@ -464,7 +419,6 @@
                 tableBody.appendChild(row);
             });
 
-            // Add click event listeners to saksnummer
             document.querySelectorAll('.saksnummer').forEach(span => {
                 span.addEventListener('click', function() {
                     const saksnummer = this.getAttribute('data-saksnummer');
@@ -474,18 +428,15 @@
         }
 
         function showCaseDetails(saksnummer) {
-            // Find the case in the currentCases array
             const caseDetails = currentCases.find(c => c.saksnummer === saksnummer);
             if (!caseDetails) {
                 alert('Case details not found');
                 return;
             }
 
-            // Populate modal
             document.getElementById('modalSaksnummer').textContent = caseDetails.saksnummer || '-';
             document.getElementById('modalSakenGjelder').textContent = caseDetails.sakenGjelder || '-';
 
-            // Populate details
             const detailsContainer = document.getElementById('modalDetails');
             detailsContainer.innerHTML = '';
             const details = {
@@ -505,11 +456,9 @@
                 index++;
             }
 
-            // Populate hearings
             const hearingsContainer = document.getElementById('modalHearings');
             hearingsContainer.innerHTML = '';
             (caseDetails.moeter || []).forEach(hearing => {
-                // Format start date to DD.MM.YYYY
                 const startDate = new Date(hearing.start);
                 const formattedDate = startDate && !isNaN(startDate) 
                     ? `${startDate.getDate().toString().padStart(2, '0')}.${(startDate.getMonth() + 1).toString().padStart(2, '0')}.${startDate.getFullYear()}`
@@ -525,10 +474,8 @@
                 hearingsContainer.appendChild(row);
             });
 
-            // Show modal
             modal.style.display = 'block';
         }
     </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'937aacb76ef3ed86',t:'MTc0NTg4NjQ1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
